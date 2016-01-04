@@ -5,9 +5,6 @@ class StdNumberRandom(object):
 
     def __init__(self,config):
 
-        if not self._validate_config(config):
-            raise ValueError('Not a valid json schema for Number(float) type')
-
         self.min = 0.0
         self.max = 1000.0
         self.multipleof = 1.0
@@ -44,14 +41,6 @@ class StdNumberRandom(object):
         if 'enum' in config.keys():
             self.enum = enum
 
-    def _validate_config(self,config):
-        if 'multipleof' in config.keys() and type(config['multipleof']) not in [int,float]: return False
-        if 'minimum' in config.keys() and type(config['minimum']) not in [int,float]:return False
-        if 'maximum' in config.keys() and type(config['maximum']) not in [int,float]:return False
-        if 'exclusiveminimum' in config.keys() and not isinstance(config['exclusiveminimum'],bool):return False
-        if 'exclusivemaximum' in config.keys() and not isinstance(config['exclusivemaximum'],bool):return False
-        if 'minimum' in config.keys() and 'maximum' in config.keys() and config['maximum']<config['minimum']: return False
-        return True
 
     def generate(self):
         if self.enum:

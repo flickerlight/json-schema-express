@@ -4,7 +4,8 @@ import json
 import sys
 import os
 import random
-from plugins.std import *
+from generators.std import *
+#from generators.usr import *
 
 
 class DataProducer:
@@ -58,23 +59,38 @@ class DataProducer:
 
     def build_array(self,obj_key,obj_def):
         result_array = []
+        if 'minItems' in obj_def:
+            self.minLength = obj_def['minItems']
+        else:
+            self.minLength = 1
+        if 'maxItems' in obj_def:
+            self.maxLength = obj_def['maxItems']
+        else:
+            self.maxLength = 10
+        if 'uniqueItems' in obj_def:
+            self.uniqueItems = obj_def['uniqueItems']
+        else:
+            self.uniqueItems = False
+
         if isinstance(obj_def['items'],list):
             for i in range(0,len(obj_def['items'])):
                 prop_key = obj_key+'.'+str(i)
                 result_array.append(self.build_object(prop_key, obj_def['items'][i]))
         else:
-            if 'minItems' in obj_def:
-                minLength = obj_def['minItems']
-            else:
-                minLength = 1
-            if 'maxItems' in obj_def:
-                maxLength = obj_def['maxItems']
-            else:
-                maxLength = 5
-            actual_number = random.randrange(minLength,maxLength+1)
+            actual_number = random.randrange(self.minLength,self.maxLength+1)
             prop_key = obj_key+'.'+obj_def['items']['type']
-            for i in range(0,actual_number):
-                result_array.append(self.build_object(prop_key,obj_def['items']))
+            i =0 
+            while i < actual_number:
+                temp = self.build_object(prop_key,obj_def['items'])
+                if self.uniqueItems:
+                    if temp not in result_array:
+                        result_array.append(temp)
+                        i+=1
+                    else:
+                        continue
+                else:
+                    result_array.append(temp)
+                    i+=1
         return result_array
 
     def get_generator(self,obj_key, plugin_name, obj_def):

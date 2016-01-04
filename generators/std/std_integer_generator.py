@@ -4,9 +4,6 @@ class StdIntegerRandom(object):
     '''Generate a random integer in given range. Support standard json keys "maximum","minimum","multipleof" and "enum" for integer.'''
     def __init__(self,config):
 
-        if not self._validate_config(config):
-            raise ValueError('Not a valid json schema for Integer type')
-
         self.realmin = self.min = -sys.maxint-1
         self.max = sys.maxint
         self.multipleof = 1
@@ -38,16 +35,6 @@ class StdIntegerRandom(object):
         if self.realmin > self.max:
             raise ValueError('Wrong range for Integer type')
 
-
-    def _validate_config(self,config):
-        if 'multipleof' in config.keys() and not isinstance(config['multipleof'],int): return False
-        if 'minimum' in config.keys() and not isinstance(config['minimum'],int):return False
-        if 'maximum' in config.keys() and not isinstance(config['maximum'],int):return False
-        if 'exclusiveminimum' in config.keys() and not isinstance(config['exclusiveminimum'],bool):return False
-        if 'exclusivemaximum' in config.keys() and not isinstance(config['exclusivemaximum'],bool):return False
-        if 'minimum' in config.keys() and 'maximum' in config.keys() and config['maximum']<config['minimum']: return False
-        return True
-
     def generate(self):
         if self.enum:
             return random.choice(self.enum)
@@ -64,7 +51,7 @@ class StdIntegerSequence:
     def __init__(self,config):
         self.start = config['start']
         self.step = config['step']
-        self.current = self.start
+        self.current = self.start-self.step
 
     def generate(self):
         self.current +=self.step

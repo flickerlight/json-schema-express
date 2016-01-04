@@ -1,9 +1,12 @@
 {
 	"$schema": "http://json-schema.org/draft-04/schema#",
 	"type": "array",
+	"maxItems":7,
+	"minItems":2,
 	"items": {
 		"type": "integer",
 		"maximum": 33,
 		"minimum": 15
-	}
+	},
+	"uniqueItems":true
 }
