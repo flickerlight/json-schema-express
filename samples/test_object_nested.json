@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "outer_int_a": {
+      "type": "integer",
+      "maximum": 50,
+      "minimum": 20,
+      "multipleof": 4
+    },
+    "outer_float_b": {
+      "type": "number",
+      "maximum": 100.5,
+      "minimum": 10.5
+    },
+    "inner_object": {
+      "type": "object",
+      "properties": {
+        "inner_string_c": {
+          "type": "string",
+          "maxLength": 15
+        },
+        "inner_bool_d": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "integer",
+  "start": 0,
+  "step": 100,
+  "__generator":"std_integer_generator.StdIntegerSequence"
+}

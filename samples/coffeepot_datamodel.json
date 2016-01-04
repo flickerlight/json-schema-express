@@ -1,0 +1,79 @@
+
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "CoffeePot",
+    "type": "object",
+    "properties": {
+        "id": {
+            "description": "The unique identifier for a coffee pot",
+            "type": "integer",
+            "generator": {
+                "plugin":"StdIntegerSequence",
+                "config":{
+                    "start":0,
+                    "step":1                
+                }
+            }
+        },
+        "name": {
+            "description": "Name of the coffee pot",
+            "type": "string",
+            "generator": {
+                "plugin":"StdStringPlusNumber",
+                "config":{
+                    "prefix":"POT",
+                    "start":0,
+                    "step":1
+                }
+            }
+        },
+        "temperature": {
+	        "description": "The coffee pot temperature",
+            "type": "number",
+            "minimum": 10,
+            "generator": {
+                "plugin":"StdNumberRandom",
+                "config":{
+                    "min":10.0,
+                    "max":60.0               
+                }
+            }
+        },
+        "capacity": {
+	        "description": "Capacity of the coffee pot. 0 indicates that pot is empty and 10 indicates that pot is full",
+            "type": "integer",         
+	        "minimum": 0,
+	        "maximum": 10,
+            "generator": {
+                "plugin":"StdNumberRandom",
+                "config":{
+                    "min":10,
+                    "max":60
+                }
+            }
+        },
+  	    "coffeetype": {
+	        "description": "The type of coffee, can be either Regular or Decaf",
+            "type": "string",
+            "generator": {
+                "plugin":"StdStringSet",
+                "config":{
+                    "set":["Regular", "Decaf"]             
+                }
+            }
+        },
+	    "brewtime": {
+	        "description": "The brew time of coffee pot",
+            "type": "string",
+	        "format": "date-time",
+            "generator": {
+                "plugin":"StdDateRandom",
+                "config":{
+                    "from": "2015-10-01",
+                    "to": "2015-10-31"
+                }
+            }
+        }
+    },
+    "required": ["id", "temperature", "capacity", "coffeetype", "brewtime"]
+}
