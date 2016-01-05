@@ -107,9 +107,12 @@ Both the outputs are:
 ```
 # Write your own generator
 All generators are placed in the generators directory. We provide some standard generators in the std sub-directory. 
+
 You can define your own generator following the std_ examples. The important things are:
+
 1. Your generator class need to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value.
-2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. This is how we generate integer sequence. 
+
+2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. Next time DataProducer meets the key, it will directly call the cached instance to get the value. This is how we generate integer sequence. 
 
 ## Json Schema Keywords Supported
 json-schema-express now supports below json schema keywords: 
