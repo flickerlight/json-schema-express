@@ -11,7 +11,7 @@ from jsonschema import Draft4Validator
 
 class DataProducer:
     def __init__(self,schema,plugin_config=None):
-        self.schema=json.loads(schema)
+        self.schema=schema
         self.plugin_cache={}
         self.object_defines={}
         self.type_vs_plugin={

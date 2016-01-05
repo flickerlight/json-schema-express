@@ -80,7 +80,7 @@ For example, in std_integer_generator we provide a class StdIntegerSequence to o
 ```python
 from json_schema_express import DataProducer
 
-schema = '''{
+schema = {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "integer",
   "_generator_config": {
@@ -88,7 +88,7 @@ schema = '''{
     "step": 100,
     "generator": "std_integer_generator.StdIntegerSequence"
   }
-}'''
+}
 #"start" and "step" are parameters required by StdIntegerSequence.
 #We add the "_" prefix to differentiate with standard json schema keywords.
 dp = DataProducer(schema)
@@ -98,13 +98,13 @@ for i in range(0,5):
 
 ```python
 from json_schema_express import DataProducer
-schema = '''{
+schema = {
     "type": "integer",
     "_generator_config": {
         "start": 0,
         "step": 100
         }
-    }'''
+    }
 dp = DataProducer(schema,{"integer":"std_integer_generator.StdIntegerSequence"})
 for i in range(0,5):
     print dp.produce()
@@ -117,7 +117,7 @@ Both the outputs are:
 300
 400
 ```
-# Write your own generator
+# Customize generator
 Sometimes you may want to generate more than random data for a json schema, such as the integer sequence we exhibited above. In this case, you can write your own generators.
 
 All existing generators are placed in the generators/std directory. You can define your own generator following the std_ examples. The important things you need to know are:
@@ -126,7 +126,8 @@ All existing generators are placed in the generators/std directory. You can defi
 
 2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. Next time DataProducer meets the key, it will directly call the cached instance to get the value. This is how we generate integer sequence. 
 
-## Json Schema Keywords Supported
+## Supported and Unsupported Json Schema Keywords
+### Supported
 json-schema-express now supports below json schema keywords: 
 * Json Type
 
@@ -154,7 +155,7 @@ string, number(float acutally), integer, boolean, object, array
     
     It should be used together with type string/integer/number, standalone usage is not supported.
 
-## Json Schema Keywords NOT Currently Supported
+### Unsupported
 
 - format
 - required
@@ -164,7 +165,6 @@ string, number(float acutally), integer, boolean, object, array
 - allof
 - definitions and $ref
 - not
-- 
 
 
 

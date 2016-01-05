@@ -7,7 +7,7 @@ from jsonschema import validate
 allsamples=[f for f in sorted(os.listdir('samples')) if f.find('test_')!=-1]
 for sample in allsamples:
     schema=open('samples/'+sample, 'rb').read()
-    producer=DataProducer(schema)
+    producer=DataProducer(json.loads(schema))
     print '*'*10+sample+'*'*10
     print 'Schema:\n'+json.dumps(json.loads(schema),indent=4,sort_keys=True)
     print 'Generated Data:'
