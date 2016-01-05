@@ -1,8 +1,7 @@
-from data_producer import DataProducer
+from json_schema_express import DataProducer
 import os
 import json
 from jsonschema import validate
-
 
 
 allsamples=[f for f in sorted(os.listdir('samples')) if f.find('test_')!=-1]
