@@ -64,8 +64,8 @@ The output might be like:
 ### Specify non-default generator
 There are two ways to specify non-default generator to use:
 
-1. You can change the generator for a specified type by setting '__generator' key in the json schema. 
-2. You can pass a config dictionary to the DataProducer() constructor to overwritten the default setting.
+1. You can change the generator for a specified key by setting '__generator' key in the json schema. Only this key will be genreated by the specified generator. Other keys of the same type are not affected.
+2. You can pass a config dictionary to the DataProducer() constructor to overwritten the default setting. Notice that in this way, all keys of the same type will be genereted by the specified generator.
 
 For example, in std_integer_generator we provide a class StdIntegerSequence to output a consecutive integer sequence. Both below code blocks achieve the same goal:
 
@@ -74,11 +74,13 @@ from json_schema_express import DataProducer
 
 schema = '''{
     "type": "integer",
-    "start":0,
-    "step":100,
+    "__start":0,
+    "__step":100,
     "__generator":"std_integer_generator.StdIntegerSequence"
     }'''
-#"start" and "step" are not standard json keywords, but parameters required by StdIntegerSequence.
+#"__start" and "__step" are parameters required by StdIntegerSequence.
+#We add "__" prefix to differentiate with standard json schema keywords.
+#But "__" is not required.
 dp = DataProducer(schema)
 for i in range(0,5):
     print dp.produce()
@@ -88,8 +90,8 @@ for i in range(0,5):
 from json_schema_express import DataProducer
 schema = '''{
     "type": "integer",
-    "start":0, 
-    "step":100
+    "__start":0, 
+    "__step":100
     }'''
 dp = DataProducer(schema,{"integer":"std_integer_generator.StdIntegerSequence"})
 for i in range(0,5):
@@ -103,6 +105,11 @@ Both the outputs are:
 300
 400
 ```
+# Write your own generator
+All generators are placed in the generators directory. We provide some standard generators in the std sub-directory. 
+You can define your own generator following the std_ examples. The important things are:
+1. Your generator class need to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value.
+2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. This is how we generate integer sequence. 
 
 ## Json Schema Keywords Supported
 json-schema-express now supports below json schema keywords: 
@@ -132,7 +139,7 @@ string, number(float acutally), integer, boolean, object, array
     
     It should be used together with type string/integer/number, standalone usage is not supported.
 
-## Keywords NOT currently supported:
+## Json Schema Keywords NOT Currently Supported
 
 - format
 - required
