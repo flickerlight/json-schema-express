@@ -6,7 +6,7 @@ Json-schema-express supports Python 2.6+ and requires below non-standard python 
 - [rstr](https://pypi.python.org/pypi/rstr/2.1.3)
 - [jsonschema](https://github.com/Julian/jsonschema)
 
-It  only supports generating data for json schema draftv4.
+Currently json-schema-express only supports json schema draft version 4. Hypermedia schema and version 4 support is still on the way.
 
 ## Example
 ### Default Generator
@@ -22,7 +22,7 @@ Here is an example of generating data for a nested json object schema:
 import json
 from json_schema_express import DataProducer
 
-schema = '''{
+schema = {
     "type": "object",
     "properties": {
         "outer_int_a": {
@@ -45,7 +45,7 @@ schema = '''{
             }
         }
     }
-}'''
+}
 dp = DataProducer(schema)
 for i in range(0,2):
     print json.dumps(dp.produce(),indent=4,sort_keys=True)
@@ -81,7 +81,6 @@ For example, in std_integer_generator we provide a class StdIntegerSequence to o
 from json_schema_express import DataProducer
 
 schema = {
-  "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "integer",
   "_generator_config": {
     "start": 0,
@@ -127,7 +126,8 @@ All existing generators are placed in the generators/std directory. You can defi
 2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. Next time DataProducer meets the key, it will directly call the cached instance to get the value. This is how we generate integer sequence. 
 
 ## Supported and Unsupported Json Schema Keywords
-### Supported
+
+### Supported V4 Keywords
 json-schema-express now supports below json schema keywords: 
 * Json Type
 
@@ -155,7 +155,7 @@ string, number(float acutally), integer, boolean, object, array
     
     It should be used together with type string/integer/number, standalone usage is not supported.
 
-### Unsupported
+### Unsupported V4 Keywords
 
 - format
 - required
