@@ -49,8 +49,8 @@ class StdIntegerRandom(object):
 class StdIntegerSequence:
     '''Define an integer sequence with specified start and step parameters, and return one element each time generate() is called'''
     def __init__(self,config):
-        self.start = config['__start']
-        self.step = config['__step']
+        self.start = config['_generator_config']['start']
+        self.step = config['_generator_config']['step']
         self.current = self.start-self.step
 
     def generate(self):

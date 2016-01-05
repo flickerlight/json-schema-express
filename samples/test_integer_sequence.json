@@ -1,7 +1,9 @@
 {
-	"$schema": "http://json-schema.org/draft-04/schema#",
-	"type": "integer",
-	"__start": 0,
-	"__step": 100,
-	"__generator": "std_integer_generator.StdIntegerSequence"
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "integer",
+  "_generator_config": {
+    "start": 0,
+    "step": 100,
+    "generator": "std_integer_generator.StdIntegerSequence"
+  }
 }

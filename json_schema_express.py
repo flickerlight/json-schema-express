@@ -5,6 +5,7 @@ import sys
 import os
 import random
 from generators.std import *
+from jsonschema import Draft4Validator
 #from generators.usr import *
 
 
@@ -25,6 +26,7 @@ class DataProducer:
         self._parse_schema()
 
     def _parse_schema(self):
+        Draft4Validator.check_schema(self.schema)
         self.object_defines['root']=self.schema
         #save all definitions for future refererence
         if 'definitions' in self.schema:
@@ -45,16 +47,17 @@ class DataProducer:
             return self.build_value(obj_key,obj_def)
         elif obj_def['type'] == 'array':
             return self.build_array(obj_key,obj_def)
-        else:
-            #type is null
+        elif obj_def['type'] == 'null':
             return None
+        else:
+            raise ValueError('Unsupported value for object type: '+obj_def['type'])
 
     def build_value(self,obj_key,obj_def):
-        if '__generator' not in obj_def.keys():
+        if '_generator_config' not in obj_def or 'generator' not in obj_def['_generator_config']:
             generator = self.get_generator(obj_key,self.type_vs_plugin[obj_def['type']],obj_def)
         else:
             #print "customer defined generator"
-            generator = self.get_generator(obj_key,obj_def['__generator'],obj_def)
+            generator = self.get_generator(obj_key,obj_def['_generator_config']['generator'],obj_def)
         return generator.generate()
 
     def build_array(self,obj_key,obj_def):
