@@ -159,12 +159,11 @@ string, number(float acutally), integer, boolean, object, array
 
 - format
 - required
-- MaxProperties, MinProperties, AdditionalProperties
-- anyof
-- oneof
-- allof
+- MaxProperties, MinProperties, AdditionalProperties, patternProperties
+- anyof, oneof, allof
 - definitions and $ref
 - not
+- dependencies
 
 
 

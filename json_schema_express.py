@@ -37,7 +37,10 @@ class DataProducer:
         return self.build_object('root',self.object_defines['root'])
 
     def build_object(self,obj_key,obj_def):
-        if obj_def['type'] == 'object':
+        if "$ref" in obj_def:
+            ref_def = obj_def['$ref'].split('/')[-1]
+            return self.build_object(obj_key, self.object_defines[ref_def])
+        elif obj_def['type'] == 'object':
             result_object={}
             for key, definition in obj_def['properties'].items():
                 prop_key = obj_key+'.'+key
