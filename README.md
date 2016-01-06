@@ -155,6 +155,10 @@ string, number(float acutally), integer, boolean, object, array
     
     It should be used together with type string/integer/number, standalone usage is not supported.
 
+    - definitions and $ref
+    
+    Currently only reference to definitions in the same document is implemented,i.e., only references  like "#/definitions/address".
+
 ### Unsupported V4 Keywords
 
 - format
