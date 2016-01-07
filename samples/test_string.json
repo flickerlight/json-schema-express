@@ -1,6 +1,15 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
-  "type": "string",
-  "maxLength":10,
-  "minLength":5
+    "type":"object",
+    "properties":{
+    	"patterns":{
+    		"type": "string",
+  			"pattern":"[A-Z]{4,10}[0-9]\\.[a-z]{2}"
+    	},
+    	"plains":{
+    		"type": "string",
+  			"maxLength":10,
+  			"minLength":5
+    	}
+    }
   }

@@ -18,7 +18,13 @@ class DataProducer:
             "number":"std_number_generator.StdNumberRandom",
             "boolean":"std_boolean_generator.StdBooleanRandom",
             "integer":"std_integer_generator.StdIntegerRandom",
-            "string":"std_string_generator.StdStringRandom"
+            "string":"std_string_generator.StdStringRandom",
+            "date-time":"std_datetime_generator.StdDateTimeRandom",
+            "email":"std_email_generator.StdEmailRandom",
+            "ipv4":"std_ipaddr_generator.StdIPv4Random",
+            "ipv6":"std_ipaddr_generator.StdIPv6Random",
+            "uri":"std_uri_generator.StdURIRandom",
+            "hostname":"std_domain_name_generator.StdDomainNameRandom"
         }
         if plugin_config:
             for key,value in plugin_config.items():
@@ -57,9 +63,12 @@ class DataProducer:
 
     def build_value(self,obj_key,obj_def):
         if '_generator_config' not in obj_def or 'generator' not in obj_def['_generator_config']:
-            generator = self.get_generator(obj_key,self.type_vs_plugin[obj_def['type']],obj_def)
+            if 'format' in obj_def.keys():
+                #get generator according to the format
+                generator = self.get_generator(obj_key, self.type_vs_plugin[obj_def['format']],obj_def)
+            else:
+                generator = self.get_generator(obj_key,self.type_vs_plugin[obj_def['type']],obj_def)
         else:
-            #print "customer defined generator"
             generator = self.get_generator(obj_key,obj_def['_generator_config']['generator'],obj_def)
         return generator.generate()
 

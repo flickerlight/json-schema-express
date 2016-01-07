@@ -158,6 +158,7 @@ string, number(float acutally), integer, boolean, object, array
     - definitions and $ref
     
     Currently only reference to definitions in the same document is implemented,i.e., only references  like "#/definitions/address".
+    Reference to other key or other json file is not supported right now.
 
 ### Unsupported V4 Keywords
 
@@ -165,7 +166,6 @@ string, number(float acutally), integer, boolean, object, array
 - required
 - MaxProperties, MinProperties, AdditionalProperties, patternProperties
 - anyof, oneof, allof
-- definitions and $ref
 - not
 - dependencies
 
