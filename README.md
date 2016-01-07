@@ -131,7 +131,8 @@ All existing generators are placed in the generators/std directory. You can defi
 json-schema-express now supports below json schema keywords: 
 * Json Type
 
-string, number(float acutally), integer, boolean, object, array
+Json-schema-express currently only support single value of "type" keyword, including string, number(float acutally), integer, boolean, object and array.
+The "enum" types are not supported.
 
 * Type-Speicific Keywords
     
@@ -141,7 +142,7 @@ string, number(float acutally), integer, boolean, object, array
 
     - string
     
-    minLength, maxLength, pattern 
+    minLength, maxLength, pattern , format(ipv4/ipv6/email/uri/hostname/date-time)
 
     - object
     
@@ -162,7 +163,6 @@ string, number(float acutally), integer, boolean, object, array
 
 ### Unsupported V4 Keywords
 
-- format
 - required
 - MaxProperties, MinProperties, AdditionalProperties, patternProperties
 - anyof, oneof, allof
