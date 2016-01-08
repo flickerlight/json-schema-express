@@ -10,12 +10,12 @@ Currently json-schema-express only supports json schema draft version 4. Hyperme
 
 ## Example
 ### Default Generator
-By default, json-schema-express uses default generators in generators/std directory to generate value for each json type. Default mapping is as following:
+By default, json-schema-express uses a bunch of default generators to generate value for each json type. Default mapping is as following:
 
-    "number":"std_number_generator.StdNumberRandom",
-    "boolean":"std_boolean_generator.StdBooleanRandom",
-    "integer":"std_integer_generator.StdIntegerRandom",
-    "string":"std_string_generator.StdStringRandom"
+    "number":"StdNumberRandom",
+    "boolean":"StdBooleanRandom",
+    "integer":"StdIntegerRandom",
+    "string":"StdStringRandom"
 
 Here is an example of generating data for a nested json object schema:
 ```python
@@ -75,7 +75,7 @@ There are two ways to specify non-default generator to use:
 
 2. You can pass a config dictionary to the DataProducer() constructor to overwritten the default setting. Notice that in this way, all keys of the same type will be genereted by the specified generator.
 
-For example, in std_integer_generator we provide a class StdIntegerSequence to output a consecutive integer sequence. Both below code blocks achieve the same goal:
+For example, we provide a class StdIntegerSequence to output a consecutive integer sequence. Both below code blocks achieve the same goal:
 
 ```python
 from json_schema_express import DataProducer
@@ -119,9 +119,9 @@ Both the outputs are:
 # Customize generator
 Sometimes you may want to generate more than random data for a json schema, such as the integer sequence we exhibited above. In this case, you can write your own generators.
 
-All existing generators are placed in the generators/std directory. You can define your own generator following the std_ examples. The important things you need to know are:
+All existing generators are placed in **generators.py**. You can define your own generator class following the STD examples. The important things you need to know are:
 
-1. Your generator class needs to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value.
+1. Your generator class needs to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value. You can also require the json schema to provide additional parameters in object _generator_config, As the example in previous section.
 
 2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. Next time DataProducer meets the key, it will directly call the cached instance to get the value. This is how we generate integer sequence. 
 
@@ -142,7 +142,7 @@ The "enum" types are not supported.
 
     - string
     
-    minLength, maxLength, pattern , format(ipv4/ipv6/email/uri/hostname/date-time)
+    minLength, maxLength, pattern, format(ipv4/ipv6/email/uri/hostname/date-time)
 
     - object
     
