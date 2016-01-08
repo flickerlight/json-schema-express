@@ -4,9 +4,8 @@ import json
 import sys
 import os
 import random
-from generators.std import *
 from jsonschema import Draft4Validator
-#from generators.usr import *
+from generators import *
 
 
 class DataProducer:
@@ -15,16 +14,16 @@ class DataProducer:
         self.plugin_cache={}
         self.object_defines={}
         self.type_vs_plugin={
-            "number":"std_number_generator.StdNumberRandom",
-            "boolean":"std_boolean_generator.StdBooleanRandom",
-            "integer":"std_integer_generator.StdIntegerRandom",
-            "string":"std_string_generator.StdStringRandom",
-            "date-time":"std_datetime_generator.StdDateTimeRandom",
-            "email":"std_email_generator.StdEmailRandom",
-            "ipv4":"std_ipaddr_generator.StdIPv4Random",
-            "ipv6":"std_ipaddr_generator.StdIPv6Random",
-            "uri":"std_uri_generator.StdURIRandom",
-            "hostname":"std_domain_name_generator.StdDomainNameRandom"
+            "number":"StdNumberRandom",
+            "boolean":"StdBooleanRandom",
+            "integer":"StdIntegerRandom",
+            "string":"StdStringRandom",
+            "date-time":"StdDateTimeRandom",
+            "email":"StdEmailRandom",
+            "ipv4":"StdIPv4Random",
+            "ipv6":"StdIPv6Random",
+            "uri":"StdURIRandom",
+            "hostname":"StdDomainNameRandom"
         }
         if plugin_config:
             for key,value in plugin_config.items():
@@ -113,3 +112,16 @@ class DataProducer:
             generator=eval(plugin_name)(obj_def)
             self.plugin_cache[obj_key]=generator
         return self.plugin_cache[obj_key]
+
+
+if __name__ == '__main__':
+    allsamples=[f for f in sorted(os.listdir('../tests/samples')) if f.find('test_')!=-1]
+    for sample in allsamples:
+        schema=open('../tests/samples/'+sample, 'rb').read()
+        producer=DataProducer(json.loads(schema))
+        print '*'*10+sample+'*'*10
+        print 'Schema:\n'+json.dumps(json.loads(schema),indent=4,sort_keys=True)
+        print 'Generated Data:'
+        for i in range(0,5):
+            result = producer.produce()
+            print json.dumps(result,indent=4, sort_keys=True)

@@ -4,6 +4,6 @@
   "_generator_config": {
     "start": 0,
     "step": 100,
-    "generator": "std_integer_generator.StdIntegerSequence"
+    "generator": "StdIntegerSequence"
   }
 }
