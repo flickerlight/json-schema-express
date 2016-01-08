@@ -9,11 +9,11 @@ from generators import *
 
 
 class DataProducer:
-    def __init__(self,schema,plugin_config=None):
+    def __init__(self,schema,generator_mapping=None):
         self.schema=schema
-        self.plugin_cache={}
+        self.generator_cache={}
         self.object_defines={}
-        self.type_vs_plugin={
+        self.type_vs_generator={
             "number":"StdNumberRandom",
             "boolean":"StdBooleanRandom",
             "integer":"StdIntegerRandom",
@@ -25,15 +25,14 @@ class DataProducer:
             "uri":"StdURIRandom",
             "hostname":"StdDomainNameRandom"
         }
-        if plugin_config:
-            for key,value in plugin_config.items():
-                self.type_vs_plugin[key]=value
+        if generator_mapping:
+            for key,value in generator_mapping.items():
+                self.type_vs_generator[key]=value
         self._parse_schema()
 
     def _parse_schema(self):
         Draft4Validator.check_schema(self.schema)
         self.object_defines['root']=self.schema
-        #save all definitions for future refererence
         if 'definitions' in self.schema:
             for key, value in self.schema['definitions'].items():
                 self.object_defines[key]=value
@@ -42,31 +41,34 @@ class DataProducer:
         return self.build_object('root',self.object_defines['root'])
 
     def build_object(self,obj_key,obj_def):
-        if "$ref" in obj_def:
-            ref_def = obj_def['$ref'].split('/')[-1]
-            return self.build_object(obj_key, self.object_defines[ref_def])
-        elif obj_def['type'] == 'object':
-            result_object={}
-            for key, definition in obj_def['properties'].items():
-                prop_key = obj_key+'.'+key
-                result_object[key] = self.build_object(prop_key,definition)
-            return result_object
-        elif obj_def['type'] in ['string','integer','number','boolean']:
-            return self.build_value(obj_key,obj_def)
-        elif obj_def['type'] == 'array':
-            return self.build_array(obj_key,obj_def)
-        elif obj_def['type'] == 'null':
-            return None
+        if obj_key in self.generator_cache:
+            existing_generator = self.generator_cache[obj_key]
+            return existing_generator.generate()
         else:
-            raise ValueError('Unsupported value for object type: '+obj_def['type'])
+            if "$ref" in obj_def:
+                ref_def = obj_def['$ref'].split('/')[-1]
+                return self.build_object(obj_key, self.object_defines[ref_def])
+            elif obj_def['type'] == 'object':
+                result_object={}
+                for key, definition in obj_def['properties'].items():
+                    prop_key = obj_key+'.'+key
+                    result_object[key] = self.build_object(prop_key,definition)
+                return result_object
+            elif obj_def['type'] in ['string','integer','number','boolean']:
+                return self.build_value(obj_key,obj_def)
+            elif obj_def['type'] == 'array':
+                return self.build_array(obj_key,obj_def)
+            elif obj_def['type'] == 'null':
+                return None
+            else:
+                raise ValueError('Unsupported value for object type: '+obj_def['type'])
 
     def build_value(self,obj_key,obj_def):
         if '_generator_config' not in obj_def or 'generator' not in obj_def['_generator_config']:
             if 'format' in obj_def.keys():
-                #get generator according to the format
-                generator = self.get_generator(obj_key, self.type_vs_plugin[obj_def['format']],obj_def)
+                generator = self.get_generator(obj_key, self.type_vs_generator[obj_def['format']],obj_def)
             else:
-                generator = self.get_generator(obj_key,self.type_vs_plugin[obj_def['type']],obj_def)
+                generator = self.get_generator(obj_key,self.type_vs_generator[obj_def['type']],obj_def)
         else:
             generator = self.get_generator(obj_key,obj_def['_generator_config']['generator'],obj_def)
         return generator.generate()
@@ -107,11 +109,11 @@ class DataProducer:
                     i+=1
         return result_array
 
-    def get_generator(self,obj_key, plugin_name, obj_def):
-        if obj_key not in self.plugin_cache:
-            generator=eval(plugin_name)(obj_def)
-            self.plugin_cache[obj_key]=generator
-        return self.plugin_cache[obj_key]
+    def get_generator(self,obj_key, generator_name, obj_def):
+        if obj_key not in self.generator_cache:
+            generator=eval(generator_name)(obj_def)
+            self.generator_cache[obj_key]=generator
+        return self.generator_cache[obj_key]
 
 
 if __name__ == '__main__':
