@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "id":"http://json-schema.org/address",
+  "type": "object",
+  "properties": {
+    "billing_address": { "$ref": "#/properties/extended-address"}
+  }
+}
