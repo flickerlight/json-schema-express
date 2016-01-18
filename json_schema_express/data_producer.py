@@ -38,9 +38,9 @@ class DataProducer:
             for key,value in generator_mapping.items():
                 self.type_vs_generator[key]=value
 
-        self._parse_schema()
+        self.__parse_schema()
 
-    def _parse_schema(self):
+    def __parse_schema(self):
         if '$schema' not in self.schema or self.schema['$schema'].find('draft-03')==-1:
             Draft4Validator.check_schema(self.schema)
         else:
@@ -50,10 +50,10 @@ class DataProducer:
         if 'id' in self.schema:
             self.base_uri=self.schema['id']
 
-        self._parse_object('root',self.schema)
+        self.__parse_object('root',self.schema)
 
 
-    def _get_refered_json(self,json_file=''):
+    def __get_refered_json(self,json_file=''):
         if not self.base_uri and not json_file:
             #refer to itself
             return self.schema
@@ -79,7 +79,7 @@ class DataProducer:
             self.refered_jsons[json_file]=json_content
             return json_content
 
-    def _replace_ref(self,obj_key,ref_string):
+    def __replace_ref(self,obj_key,ref_string):
         path=''
         for p in obj_key.split('.')[1:]:
             if not p.isdigit():
@@ -87,47 +87,47 @@ class DataProducer:
             else:
                 path+=''.join(('[',p,']'))
         (json_file,json_path)=ref_string.split('#')
-        real_def = extract(self._get_refered_json(json_file),json_path)
+        real_def = extract(self.__get_refered_json(json_file),json_path)
         exec('self.schema'+path+'='+json.dumps(real_def))
 
-    def _parse_object(self,obj_key,obj_def):
+    def __parse_object(self,obj_key,obj_def):
         if obj_key == 'definitions':
             for df,value in obj_def.items():
                 prop_key=obj_key+'.'+df
-                self.__parse_object(prop_key,value)
+                self.___parse_object(prop_key,value)
         elif "$ref" in obj_def:
             #replace the whole object with referred json
-            self._replace_ref(obj_key,obj_def['$ref'])
+            self.__replace_ref(obj_key,obj_def['$ref'])
         else:
             if obj_def['type'] == 'object':
                 for key, value in obj_def['properties'].items():
-                    self._parse_object(obj_key+'.properties.'+key,value)
+                    self.__parse_object(obj_key+'.properties.'+key,value)
             elif obj_def['type'] == 'array':
-                self._parse_array(obj_key,obj_def)
+                self.__parse_array(obj_key,obj_def)
             else:
                 pass
 
-    def _parse_array(self,obj_key,obj_def):
+    def __parse_array(self,obj_key,obj_def):
         if isinstance(obj_def['items'],list):
             for i in range(0,len(obj_def['items'])):
                 prop_key = obj_key+'.items.'+str(i)
-                self._parse_object(prop_key,obj_def['items'][i])
+                self.__parse_object(prop_key,obj_def['items'][i])
         else:
             prop_key=obj_key
-            self._parse_object(prop_key,obj_def['items'])
+            self.__parse_object(prop_key,obj_def['items'])
 
 
-    def _build_value(self,obj_key,obj_def):
+    def __build_value(self,obj_key,obj_def):
         if '_generator_config' not in obj_def or 'generator' not in obj_def['_generator_config']:
             if 'format' in obj_def.keys():
-                generator = self._get_generator(obj_key, self.type_vs_generator[obj_def['format']],obj_def)
+                generator = self.__get_generator(obj_key, self.type_vs_generator[obj_def['format']],obj_def)
             else:
-                generator = self._get_generator(obj_key,self.type_vs_generator[obj_def['type']],obj_def)
+                generator = self.__get_generator(obj_key,self.type_vs_generator[obj_def['type']],obj_def)
         else:
-            generator = self._get_generator(obj_key,obj_def['_generator_config']['generator'],obj_def)
+            generator = self.__get_generator(obj_key,obj_def['_generator_config']['generator'],obj_def)
         return generator.generate()
 
-    def _build_array(self,obj_key,obj_def):
+    def __build_array(self,obj_key,obj_def):
         result_array = []
         if 'minItems' in obj_def:
             self.minLength = obj_def['minItems']
@@ -145,13 +145,13 @@ class DataProducer:
         if isinstance(obj_def['items'],list):
             for i in range(0,len(obj_def['items'])):
                 prop_key = obj_key+'.'+str(i)
-                result_array.append(self._build_object(prop_key, obj_def['items'][i]))
+                result_array.append(self.__build_object(prop_key, obj_def['items'][i]))
         else:
             actual_number = random.randrange(self.minLength,self.maxLength+1)
             prop_key = obj_key+'.'+obj_def['items']['type']
             i =0 
             while i < actual_number:
-                temp = self._build_object(prop_key,obj_def['items'])
+                temp = self.__build_object(prop_key,obj_def['items'])
                 if self.uniqueItems:
                     if temp not in result_array:
                         result_array.append(temp)
@@ -163,7 +163,7 @@ class DataProducer:
                     i+=1
         return result_array
 
-    def _build_object(self,obj_key,obj_def):
+    def __build_object(self,obj_key,obj_def):
         if obj_key in self.generator_cache:
             existing_generator = self.generator_cache[obj_key]
             return existing_generator.generate()
@@ -172,21 +172,21 @@ class DataProducer:
                 result_object={}
                 for key, definition in obj_def['properties'].items():
                     prop_key = obj_key+'.'+key
-                    result_object[key] = self._build_object(prop_key,definition)
+                    result_object[key] = self.__build_object(prop_key,definition)
                 return result_object
             elif obj_def['type'] in ['string','integer','number','boolean']:
-                return self._build_value(obj_key,obj_def)
+                return self.__build_value(obj_key,obj_def)
             elif obj_def['type'] == 'array':
-                return self._build_array(obj_key,obj_def)
+                return self.__build_array(obj_key,obj_def)
             elif obj_def['type'] == 'null':
                 return None
             else:
                 raise ValueError('Unsupported value for object type: '+obj_def['type'])
 
     def produce(self):
-        return self._build_object('root',self.object_defines['root'])
+        return self.__build_object('root',self.object_defines['root'])
 
-    def _get_generator(self,obj_key, generator_name, obj_def):
+    def __get_generator(self,obj_key, generator_name, obj_def):
         if obj_key not in self.generator_cache:
             generator=eval(generator_name)(obj_def)
             self.generator_cache[obj_key]=generator
