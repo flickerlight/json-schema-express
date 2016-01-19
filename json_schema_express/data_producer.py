@@ -199,7 +199,7 @@ if __name__ == '__main__':
     for sample in allsamples:
         schema=open(sample_dir+'/'+sample, 'rb').read()
         print '*'*10+sample+'*'*10
-        producer=DataProducer(json.loads(schema))
+        producer=DataProducer(json.loads(schema),sample_dir)
         if sample.find('_ref_')!=-1:print '-> Original schema:\n'+ json.dumps(json.loads(schema),indent=4,sort_keys=True)
         print '-> Full schema:\n'+json.dumps(producer.schema,indent=4,sort_keys=True)
         print '-> Generated Data:'

@@ -2,6 +2,6 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "properties": {
-    "billing_address": { "$ref": "/sample_schemas/test_string.json#"}
+    "billing_address": { "$ref": "test_string.json#"}
   }
 }
