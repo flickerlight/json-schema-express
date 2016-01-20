@@ -1,17 +1,13 @@
 {
-  "type": "array",
-  "items": [
-    {
-      "type": "number"
-    },
-    {
-      "type": "string"
-    },
-    {
-       "type":"array",
-       "items":{
-           "type":"boolean"
-       }
-    }
-  ]
+    "type": "array",
+    "items": [{
+        "type": "number"
+    }, {
+        "type": "string"
+    }, {
+        "type": "array",
+        "items": {
+            "type": "boolean"
+        }
+    }]
 }

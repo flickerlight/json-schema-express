@@ -186,6 +186,15 @@ class DataProducer:
     def produce(self):
         return self.__build_object('root',self.object_defines['root'])
 
+    def produce_list(self,list_length=10):
+        if not isinstance(list_length,int) or list_length <= 0:
+            return []
+        result_list = []
+        for i in range(0, list_length):
+            result_list.append(self.produce())
+        return result_list
+
+
     def __get_generator(self,obj_key, generator_name, obj_def):
         if obj_key not in self.generator_cache:
             generator=eval(generator_name)(obj_def)
