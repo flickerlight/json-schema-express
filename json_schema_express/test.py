@@ -262,6 +262,7 @@ class TestSchemaParse(unittest.TestCase):
 
 
 class TestDataGenerate(unittest.TestCase):
+
     def test_single_key_standard_generator(self):
         schema = {
                 "type":"integer",
@@ -334,7 +335,8 @@ class TestDataGenerate(unittest.TestCase):
                 "null_e":{
                     "type":"null"
                 }
-            }
+            },
+            "required":["int_a","float_b","string_c","bool_d","null_e"]
         }
 
         dp = DataProducer(schema)
@@ -374,7 +376,6 @@ class TestDataGenerate(unittest.TestCase):
             self.assertIn(v,range(15,34))
         self.assertTrue(len(value) == len(set(value)))
         
-
     def test_array_tuple(self):
         schema = {
             "type": "array",
@@ -439,9 +440,11 @@ class TestDataGenerate(unittest.TestCase):
                         "inner_bool_d": {
                             "type": "boolean"
                         }
-                    }
+                    },
+                    "required":["inner_bool_d","inner_string_c"]
                 }
-            }
+            },
+            "required":["outer_int_a","inner_object"]
         }
         dp =  DataProducer(schema)
         value = dp.produce()
@@ -470,7 +473,8 @@ class TestDataGenerate(unittest.TestCase):
                     "type": "string",
                     "format": "ipv4"
                 }
-            }
+            },
+            "required":["ipv4"]
         }
         dp = DataProducer(schema)
         value = dp.produce()
@@ -507,6 +511,68 @@ class TestDataGenerate(unittest.TestCase):
         dp = DataProducer(schema)
         self.assertEqual(dp.produce_list('a'),[])
 
+    def test_partly_required(self):
+        schema = {
+            "type":"object",
+            "properties":{
+                "int_a":{
+                    "type":"integer",
+                    "maximum":9,
+                    "minimum":4
+                },
+                "string_b":{
+                    "type":"string",
+                    "maxLength":6,
+                    "minLength":3
+                }
+            },
+            "required":["int_a"]
+        }
+        dp = DataProducer(schema)
+        b_no_present = b_present = False
+        while not (b_no_present and b_present):
+            value = dp.produce()
+            self.assertIn(value['int_a'],range(4,10))
+            if 'string_b' in value:
+                self.assertTrue(isinstance(value['string_b'],basestring))
+                self.assertIn(len(value['string_b']),range(3,7))
+                b_present = True
+            else:
+                b_no_present = True
+
+    def test_no_required_default(self):
+        '''If "required" is not presented in the schema, the default behavior is that every key 
+        will be regarded as non-required'''
+        schema = {
+            "type":"object",
+            "properties":{
+                "int_a":{
+                    "type":"integer",
+                    "maximum":9,
+                    "minimum":4
+                },
+                "string_b":{
+                    "type":"string",
+                    "maxLength":6,
+                    "minLength":3
+                }
+            }
+        }
+        dp = DataProducer(schema)
+        a_present = a_no_present = b_no_present = b_present = False
+        while not (a_present and a_no_present and b_no_present and b_present):
+            value = dp.produce()
+            if 'int_a' in value:
+                self.assertIn(value['int_a'],range(4,10))
+                a_present = True
+            else:
+                a_no_present = True
+            if 'string_b' in value:
+                self.assertTrue(isinstance(value['string_b'],basestring))
+                self.assertIn(len(value['string_b']),range(3,7))
+                b_present = True
+            else:
+                b_no_present = True
 
 def Data_Suite():
     ts =unittest.TestSuite()

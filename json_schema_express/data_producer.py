@@ -170,9 +170,12 @@ class DataProducer:
         else:
             if obj_def['type'] == 'object':
                 result_object={}
+                required = obj_def.get('required',[])
                 for key, definition in obj_def['properties'].items():
-                    prop_key = obj_key+'.'+key
-                    result_object[key] = self.__build_object(prop_key,definition)
+                    to_generate = (key in required) or (random.random() > 0.5)
+                    if to_generate:
+                        prop_key = obj_key+'.'+key
+                        result_object[key] = self.__build_object(prop_key,definition)
                 return result_object
             elif obj_def['type'] in ['string','integer','number','boolean']:
                 return self.__build_value(obj_key,obj_def)
