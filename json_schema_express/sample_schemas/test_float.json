@@ -2,6 +2,5 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "number",
   "minimum": 0,
-  "maximum": 100,
-  "multipleof":1.5
+  "maximum": 10
 }

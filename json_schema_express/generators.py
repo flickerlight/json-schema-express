@@ -31,10 +31,14 @@ class StdIntegerRandom(object):
 
         if 'multipleof' in config.keys():
             self.multipleof = config['multipleof']
+        if self.multipleof<0: self.multipleof=-self.multipleof
         if 'minimum' in config.keys():
             self.min = int(config['minimum'])
         if 'maximum' in config.keys():
             self.max = int(config['maximum'])
+
+        if not isinstance(self.min,int) or not isinstance(self.max,int) or not isinstance(self.multipleof,int):
+            raise ValueError("Wrong parameter (min/max/multipleof) type for Integer generator")
 
         if 'exclusivemaximum' in config.keys() and config['exclusivemaximum'] == True:
             self.exclusivemax = True
@@ -52,7 +56,7 @@ class StdIntegerRandom(object):
         if self.enum:
             return random.choice(self.enum)
         while True:
-            output =  random.randrange(self.realmin,self.max,self.multipleof)
+            output =  random.randrange(self.realmin,self.max+1,self.multipleof)
             if self.exclusivemax and output == self.max:
                 continue
             if self.exclusivemin and output == self.min:
