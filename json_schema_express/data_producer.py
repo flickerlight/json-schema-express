@@ -15,14 +15,14 @@ from generators import *
 
 
 class DataProducer:
-    def __init__(self,schema,json_file_dir='.',generator_mapping=None):
-        self.schema=schema
-        self.generator_cache={}
-        self.object_defines={}
-        self.refered_jsons={}
-        self.base_dir=json_file_dir
-        self.base_uri=''
-        self.type_vs_generator={
+    def __init__(self,schema,json_file_dir = '.',generator_mapping = None):
+        self.schema = schema
+        self.generator_cache = {}
+        self.object_defines = {}
+        self.refered_jsons = {}
+        self.base_dir = json_file_dir
+        self.base_uri = ''
+        self.type_vs_generator = {
             "number":"StdNumberRandom",
             "boolean":"StdBooleanRandom",
             "integer":"StdIntegerRandom",
@@ -34,26 +34,34 @@ class DataProducer:
             "uri":"StdURIRandom",
             "hostname":"StdDomainNameRandom"
         }
+        self.type_vs_keywords = {
+            "integer" : ["maximum","minimum","multipleof","exclusiveMaximum","exclusiveMinimum","enum"],
+            "number" : ["maximum","minimum","multipleof","exclusiveMaximum","exclusiveMinimum","enum"],
+            "string" : ["minLength","maxLength","pattern","format"],
+            "boolean" : ["enum"],
+            "array" : ["items","minItems","maxItems","uniqueItems","enum"],
+            "object" : ["properties","required","minProperties","maxProperties","dependencies","enum"]
+        }
         if generator_mapping:
             for key,value in generator_mapping.items():
-                self.type_vs_generator[key]=value
+                self.type_vs_generator[key] = value
 
         self.__parse_schema()
 
     def __parse_schema(self):
-        if '$schema' not in self.schema or self.schema['$schema'].find('draft-03')==-1:
+        if '$schema' not in self.schema or self.schema['$schema'].find('draft-03') == -1:
             Draft4Validator.check_schema(self.schema)
         else:
             raise ValueError("Draft-03 schema is not supported currently.")
 
-        self.object_defines['root']=self.schema
+        self.object_defines['root'] = self.schema
         if 'id' in self.schema:
-            self.base_uri=self.schema['id']
+            self.base_uri = self.schema['id']
 
         self.__parse_object('root',self.schema)
 
 
-    def __get_refered_json(self,json_file=''):
+    def __get_refered_json(self,json_file = ''):
         if not self.base_uri and not json_file:
             #refer to itself
             return self.schema
@@ -62,38 +70,62 @@ class DataProducer:
         else:
             if self.base_uri:
                 #refer to remote object
-                opener=urllib2.build_opener()
+                opener = urllib2.build_opener()
                 if json_file:
-                    request=urllib2.Request(self.base_uri+'/'+json_file)
+                    request = urllib2.Request(self.base_uri+'/'+json_file)
                 else:
-                    request=urllib2.Request(self.base_uri)
+                    request = urllib2.Request(self.base_uri)
                 request.add_header('User-Agent','Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.103 Safari/537.36')
-                resp=opener.open(request)
-                json_content=json.loads(resp.read())
+                resp = opener.open(request)
+                json_content = json.loads(resp.read())
                 opener.close()
             else:
                 #refer to another local file
-                f=codecs.open(self.base_dir+'/'+json_file,'r','utf-8')
-                json_content=json.loads(f.read())
+                f = codecs.open(self.base_dir+'/'+json_file,'r','utf-8')
+                json_content = json.loads(f.read())
                 f.close()
-            self.refered_jsons[json_file]=json_content
+            self.refered_jsons[json_file] = json_content
             return json_content
 
-    def __replace_ref(self,obj_key,ref_string):
-        path=''
+    def __get_json_path(self,obj_key):
+        path = ''
         for p in obj_key.split('.')[1:]:
             if not p.isdigit():
-                path+=''.join(('[\'',p,'\']'))
+                path += ''.join(('[\'',p,'\']'))
             else:
-                path+=''.join(('[',p,']'))
-        (json_file,json_path)=ref_string.split('#')
+                path += ''.join(('[',p,']'))
+        return path
+
+    def __replace_ref(self,obj_key,ref_string):
+        path = self.__get_json_path(obj_key)
+        (json_file,json_path) = ref_string.split('#')
         real_def = extract(self.__get_refered_json(json_file),json_path)
-        exec('self.schema'+path+'='+json.dumps(real_def))
+        exec('self.schema' + path + ' = ' + json.dumps(real_def))
+
+    def merge_subschemas_under_allof(self,obj_key,all_def):
+        path = self.__get_json_path(obj_key)
+        result_schema = {}
+        result_schema_type = None
+        for schema in all_def:
+            print schema
+            for key,value in schema.items():
+                if key not in result_schema:
+                    result_schema[key] = value
+                    if key == 'type':
+                        result_schema_type = schema[key]
+                else:
+                    if key == 'type':
+                        if value != schema[key]:
+                            raise ValueError('Schemas in allof have conflicts on key {0}'.format(key))
+                        else:
+                            pass
+                    else:
+                        pass
 
     def __parse_object(self,obj_key,obj_def):
         if obj_key == 'definitions':
             for df,value in obj_def.items():
-                prop_key=obj_key+'.'+df
+                prop_key = obj_key+'.'+df
                 self.___parse_object(prop_key,value)
         elif "$ref" in obj_def:
             #replace the whole object with referred json
@@ -113,7 +145,7 @@ class DataProducer:
                 prop_key = obj_key+'.items.'+str(i)
                 self.__parse_object(prop_key,obj_def['items'][i])
         else:
-            prop_key=obj_key
+            prop_key = obj_key
             self.__parse_object(prop_key,obj_def['items'])
 
 
@@ -155,12 +187,12 @@ class DataProducer:
                 if self.uniqueItems:
                     if temp not in result_array:
                         result_array.append(temp)
-                        i+=1
+                        i += 1
                     else:
                         continue
                 else:
                     result_array.append(temp)
-                    i+=1
+                    i += 1
         return result_array
 
     def __build_object(self,obj_key,obj_def):
@@ -169,7 +201,7 @@ class DataProducer:
             return existing_generator.generate()
         else:
             if obj_def['type'] == 'object':
-                result_object={}
+                result_object = {}
                 required = obj_def.get('required',[])
                 for key, definition in obj_def['properties'].items():
                     to_generate = (key in required) or (random.random() > 0.5)
@@ -189,7 +221,7 @@ class DataProducer:
     def produce(self):
         return self.__build_object('root',self.object_defines['root'])
 
-    def produce_list(self,list_length=10):
+    def produce_list(self,list_length = 10):
         if not isinstance(list_length,int) or list_length <= 0:
             return []
         result_list = []
@@ -200,21 +232,21 @@ class DataProducer:
 
     def __get_generator(self,obj_key, generator_name, obj_def):
         if obj_key not in self.generator_cache:
-            generator=eval(generator_name)(obj_def)
-            self.generator_cache[obj_key]=generator
+            generator = eval(generator_name)(obj_def)
+            self.generator_cache[obj_key] = generator
         return self.generator_cache[obj_key]
 
 
 if __name__ == '__main__':
-    sample_dir='./sample_schemas'
-    allsamples=[f for f in sorted(os.listdir(sample_dir)) if f.find('test_')!=-1]
+    sample_dir = './sample_schemas'
+    allsamples = [f for f in sorted(os.listdir(sample_dir)) if f.find('test_') != -1]
     for sample in allsamples:
-        schema=open(sample_dir+'/'+sample, 'rb').read()
+        schema = open(sample_dir+'/'+sample, 'rb').read()
         print '*'*10+sample+'*'*10
-        producer=DataProducer(json.loads(schema),sample_dir)
-        if sample.find('_ref_')!=-1:print '-> Original schema:\n'+ json.dumps(json.loads(schema),indent=4,sort_keys=True)
-        print '-> Full schema:\n'+json.dumps(producer.schema,indent=4,sort_keys=True)
+        producer = DataProducer(json.loads(schema),sample_dir)
+        if sample.find('_ref_') != -1:print '-> Original schema:\n'+ json.dumps(json.loads(schema),indent = 4,sort_keys = True)
+        print '-> Full schema:\n'+json.dumps(producer.schema,indent = 4,sort_keys = True)
         print '-> Generated Data:'
         for i in range(0,1):
             result = producer.produce()
-            print json.dumps(result,indent=4, sort_keys=True)
+            print json.dumps(result,indent = 4, sort_keys = True)
