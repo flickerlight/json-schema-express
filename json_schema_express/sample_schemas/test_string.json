@@ -11,5 +11,6 @@
   			"maxLength":10,
   			"minLength":5
     	}
-    }
+    },
+    "required":["patterns","plains"]
   }

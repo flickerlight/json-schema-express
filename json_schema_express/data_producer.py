@@ -123,15 +123,14 @@ class DataProducer:
                         pass
 
     def __parse_object(self,obj_key,obj_def):
-        if obj_key == 'definitions':
-            for df,value in obj_def.items():
-                prop_key = obj_key+'.'+df
-                self.___parse_object(prop_key,value)
-        elif "$ref" in obj_def:
+        if "$ref" in obj_def:
             #replace the whole object with referred json
             self.__replace_ref(obj_key,obj_def['$ref'])
         else:
             if obj_def['type'] == 'object':
+                if 'definitions' in obj_def:
+                    for df,value in obj_def['definitions'].items(): 
+                        self.__parse_object(obj_key+'.definitions.'+df,value)
                 for key, value in obj_def['properties'].items():
                     self.__parse_object(obj_key+'.properties.'+key,value)
             elif obj_def['type'] == 'array':

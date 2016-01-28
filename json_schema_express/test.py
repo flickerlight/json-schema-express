@@ -214,11 +214,13 @@ class TestSchemaParse(unittest.TestCase):
                                                       "maxLength":10,
                                                       "minLength":5
                                                 }
-                                            }
+                                            },
+                                            "required":["patterns","plains"]
                                         }
         self.assertEqual(dp.schema,new_schema)
 
     def test_local_file_ref_specified_path(self):
+        self.maxDiff = None
         schema = {
             "$schema": "http://json-schema.org/draft-04/schema#",
             "type": "object",
@@ -241,7 +243,8 @@ class TestSchemaParse(unittest.TestCase):
                                                       "maxLength":10,
                                                       "minLength":5
                                                 }
-                                            }
+                                            },
+                                            "required":["patterns","plains"]
                                         }
         self.assertEqual(dp.schema,new_schema)
 
@@ -259,6 +262,68 @@ class TestSchemaParse(unittest.TestCase):
         new_schema['properties']['billing_address'] = { "type": "string" }
         self.maxDiff = None
         self.assertEqual(dp.schema,new_schema)
+
+    def test_ref_in_definitions(self):
+        schema = {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "definitions": {
+                "address": {
+                    "type": "object",
+                    "properties": {
+                        "street_address": {
+                             "$ref": "test_string.json#"
+                         },
+                        "code": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            },
+            "type": "object",
+            "properties": {
+                "billing_address": {
+                    "$ref": "#/definitions/address/properties/street_address"
+                },
+                "another_ref":{
+                    "$ref": "#/definitions/address/properties/code"
+                }
+            },
+                "required":["billing_address","another_ref"]
+        }
+        dp = DataProducer(schema,'./sample_schemas')
+        self.assertEqual(dp.schema['definitions']['address'],{
+											            "type": "object", 
+											            "properties": {
+											                "code": {
+											                    "type": "integer"
+											                }, 
+											                "street_address": {
+											                    "$schema": "http://json-schema.org/draft-04/schema#", 
+											                    "required": [
+											                        "patterns", 
+											                        "plains"
+											                    ], 
+											                    "type": "object", 
+											                    "properties": {
+											                        "patterns": {
+											                            "pattern": "[A-Z]{4,10}[0-9]\\.[a-z]{2}", 
+											                            "type": "string"
+											                        }, 
+											                        "plains": {
+											                            "minLength": 5, 
+											                            "type": "string", 
+											                            "maxLength": 10
+											                        }
+											                    }
+											                }
+											            }
+											        })
+        value = dp.produce()
+        self.assertEqual(len(value),2)
+        self.assertEqual(len(value['billing_address']),2)
+        self.assertTrue(isinstance(value['billing_address']['patterns'],basestring))
+        self.assertTrue(isinstance(value['billing_address']['plains'],basestring))
+        self.assertTrue(isinstance(value['another_ref'],int))
 
 
 class TestDataGenerate(unittest.TestCase):
