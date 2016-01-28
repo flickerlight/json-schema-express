@@ -76,7 +76,6 @@ class StdIntegerSequence:
 
 class StdNumberRandom(object):
     '''Generate a random float in given range. Support standard json keys "maximum","minimum","multipleof" and "enum" for float number.'''
-
     def __init__(self,config):
         self.min = 0.0
         self.max = 1000.0

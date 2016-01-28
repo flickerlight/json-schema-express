@@ -7,99 +7,6 @@ from data_producer import DataProducer
 from generators import *
 from jsonspec.pointer import extract
 
-class TestInteger(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.original_schema = {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 2
-        }
-
-    def test_random_range(self):
-        dp = DataProducer(self.original_schema)
-        for i in range(0,5):
-            self.assertIn(dp.produce(),range(self.original_schema['minimum'],self.original_schema['maximum']+1))
-
-    def test_multipleof_positive(self):
-        schema = deepcopy(self.original_schema)
-        schema['multipleof'] = 5
-        schema['minimum'] = 1
-        schema['maximum'] = 20
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            self.assertIn(dp.produce(),range(5,21,5))
-
-    def test_multipleof_negative(self):
-        schema = deepcopy(self.original_schema)
-        schema['multipleof'] = -5
-        schema['minimum'] = 1
-        schema['maximum'] = 20
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            self.assertIn(dp.produce(),range(5,21,5))
-
-    def test_exclusive_max(self):
-        schema = deepcopy(self.original_schema)
-        schema['exclusivemaximum'] = True
-        schema['minimum'] = 1
-        schema['maximum'] = 2
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            self.assertEqual(dp.produce(),1)
-
-    def test_exclusive_min(self):
-        schema = deepcopy(self.original_schema)
-        schema['exclusiveminimum'] = True
-        schema['minimum'] = 1
-        schema['maximum'] = 2
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            self.assertEqual(dp.produce(),2)
-
-    def test_no_border(self):
-        schema = deepcopy(self.original_schema)
-        schema.pop('minimum',None)
-        schema.pop('maximum',None)
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            value = dp.produce()
-            self.assertTrue(value>-sys.maxint-1)
-            self.assertTrue(value<sys.maxint)
-
-    def test_enum(self):
-        schema = deepcopy(self.original_schema)
-        schema['enum'] = [34,15,52]
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            self.assertIn(dp.produce(),[34,15,52])
-
-    def test_sequence(self):
-        schema = json.loads(open('./sample_schemas/test_integer_sequence.json','rb').read())
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            self.assertEqual(dp.produce(),i*100)
-
-
-class TestFloat(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.original_schema = {
-            "$schema": "http://json-schema.org/draft-04/schema#",
-            "type":"number"
-        }
-
-    def test_random_range(self):
-        schema = deepcopy(self.original_schema)
-        schema['maximum'] = 5.0
-        schema['minimum'] = 1.0
-        dp = DataProducer(schema)
-        for i in range(0,5):
-            value = dp.produce()
-            self.assertTrue(value >= 1.0)
-            self.assertTrue(value <= 5.0)
-
 class TestSchemaParse(unittest.TestCase):
     def test_no_ref(self):
         schema = {
@@ -214,11 +121,13 @@ class TestSchemaParse(unittest.TestCase):
                                                       "maxLength":10,
                                                       "minLength":5
                                                 }
-                                            }
+                                            },
+                                            "required":["patterns","plains"]
                                         }
         self.assertEqual(dp.schema,new_schema)
 
     def test_local_file_ref_specified_path(self):
+        self.maxDiff = None
         schema = {
             "$schema": "http://json-schema.org/draft-04/schema#",
             "type": "object",
@@ -241,7 +150,8 @@ class TestSchemaParse(unittest.TestCase):
                                                       "maxLength":10,
                                                       "minLength":5
                                                 }
-                                            }
+                                            },
+                                            "required":["patterns","plains"]
                                         }
         self.assertEqual(dp.schema,new_schema)
 
@@ -260,6 +170,67 @@ class TestSchemaParse(unittest.TestCase):
         self.maxDiff = None
         self.assertEqual(dp.schema,new_schema)
 
+    def test_ref_in_definitions(self):
+        schema = {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "definitions": {
+                "address": {
+                    "type": "object",
+                    "properties": {
+                        "street_address": {
+                             "$ref": "test_string.json#"
+                         },
+                        "code": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            },
+            "type": "object",
+            "properties": {
+                "billing_address": {
+                    "$ref": "#/definitions/address/properties/street_address"
+                },
+                "another_ref":{
+                    "$ref": "#/definitions/address/properties/code"
+                }
+            },
+                "required":["billing_address","another_ref"]
+        }
+        dp = DataProducer(schema,'./sample_schemas')
+        self.assertEqual(dp.schema['definitions']['address'],{
+											            "type": "object", 
+											            "properties": {
+											                "code": {
+											                    "type": "integer"
+											                }, 
+											                "street_address": {
+											                    "$schema": "http://json-schema.org/draft-04/schema#", 
+											                    "required": [
+											                        "patterns", 
+											                        "plains"
+											                    ], 
+											                    "type": "object", 
+											                    "properties": {
+											                        "patterns": {
+											                            "pattern": "[A-Z]{4,10}[0-9]\\.[a-z]{2}", 
+											                            "type": "string"
+											                        }, 
+											                        "plains": {
+											                            "minLength": 5, 
+											                            "type": "string", 
+											                            "maxLength": 10
+											                        }
+											                    }
+											                }
+											            }
+											        })
+        value = dp.produce()
+        self.assertEqual(len(value),2)
+        self.assertEqual(len(value['billing_address']),2)
+        self.assertTrue(isinstance(value['billing_address']['patterns'],basestring))
+        self.assertTrue(isinstance(value['billing_address']['plains'],basestring))
+        self.assertTrue(isinstance(value['another_ref'],int))
 
 class TestDataGenerate(unittest.TestCase):
 
@@ -581,7 +552,6 @@ def Data_Suite():
     ts.addTest(unittest.makeSuite(TestSchemaParse))
     ts.addTest(unittest.makeSuite(TestDataGenerate))
     return ts
-
 
 if __name__ == '__main__':
     mySuit = Data_Suite()

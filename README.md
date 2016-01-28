@@ -5,6 +5,7 @@ Json-schema-express supports Python 2.6+ and requires below non-standard python 
 
 - [rstr](https://pypi.python.org/pypi/rstr/2.1.3)
 - [jsonschema](https://github.com/Julian/jsonschema)
+- [jsonspec](https://github.com/johnnoone/json-spec)
 
 Currently json-schema-express only supports json schema draft version 4. Hypermedia schema and version 4 support is still on the way.
 
@@ -16,6 +17,12 @@ By default, json-schema-express uses a bunch of default generators to generate v
     "boolean":"StdBooleanRandom",
     "integer":"StdIntegerRandom",
     "string":"StdStringRandom"
+    "date-time":"StdDateTimeRandom",
+    "email":"StdEmailRandom",
+    "ipv4":"StdIPv4Random",
+    "ipv6":"StdIPv6Random",
+    "uri":"StdURIRandom",
+    "hostname":"StdDomainNameRandom"
 
 Here is an example of generating data for a nested json object schema:
 ```python
@@ -85,7 +92,7 @@ schema = {
   "_generator_config": {
     "start": 0,
     "step": 100,
-    "generator": "std_integer_generator.StdIntegerSequence"
+    "generator": "StdIntegerSequence"
   }
 }
 #"start" and "step" are parameters required by StdIntegerSequence.
@@ -156,14 +163,14 @@ The "enum" types are not supported.
     
     It should be used together with type string/integer/number, standalone usage is not supported.
 
-    - definitions and $ref
+    - $ref
     
-    Currently only reference to definitions in the same document is implemented,i.e., only references  like "#/definitions/address".
-    Reference to other key or other json file is not supported right now.
+    Currently only support one level $ref, nested $ref (i.e., there are further $ref(s) in the referred json) is not supported.
 
+    - required
+    
 ### Unsupported V4 Keywords
 
-- required
 - MaxProperties, MinProperties, AdditionalProperties, patternProperties
 - anyof, oneof, allof
 - not
