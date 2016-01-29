@@ -1,30 +1,17 @@
 # json-schema-express
 json-schema-express is a a Python library to help generate random/certain pattern data according to a given [json schema](http://json-schema.org/) (for fuziing testing purpose, e.g.). By default this libary provides random generators for json values, you can also write your own generator and specify it to use.
 
-Json-schema-express supports Python 2.6+ and requires below non-standard python libraries:
+json-schema-express supports Python 2.6+ and requires below non-standard python libraries:
 
-- [rstr](https://pypi.python.org/pypi/rstr/2.1.3)
 - [jsonschema](https://github.com/Julian/jsonschema)
 - [jsonspec](https://github.com/johnnoone/json-spec)
+- [rstr](https://pypi.python.org/pypi/rstr/2.1.3)
+- [faker](https://github.com/joke2k/faker)
 
-Currently json-schema-express only supports json schema draft version 4. Hypermedia schema and version 4 support is still on the way.
+Currently json-schema-express only supports json schema draft version 4. Hypermedia schema and version 3 support is still on the way.
 
 ## Example
-### Default Generator
-By default, json-schema-express uses a bunch of default generators to generate value for each json type. Default mapping is as following:
-
-    "number":"StdNumberRandom",
-    "boolean":"StdBooleanRandom",
-    "integer":"StdIntegerRandom",
-    "string":"StdStringRandom"
-    "date-time":"StdDateTimeRandom",
-    "email":"StdEmailRandom",
-    "ipv4":"StdIPv4Random",
-    "ipv6":"StdIPv6Random",
-    "uri":"StdURIRandom",
-    "hostname":"StdDomainNameRandom"
-
-Here is an example of generating data for a nested json object schema:
+Here is a basic example to generate random data for a given json schema:
 ```python
 import json
 from json_schema_express import DataProducer
@@ -75,8 +62,30 @@ The output might be like:
 }
 ```
 
-### Specify non-default generator
-There are two ways to specify non-default generator to use:
+## Generators
+json-schema-express main process loads a bunch of generators to generate random data for each json key. You can easily change the correspondece between genrators and json keys, as well as create and plug-in customized generators.
+
+### Default Generators
+By default, json-schema-express uses default generators for each json type/format. The mapping is in the init function of DataProducer class in **data_producer.py**:
+```python
+...
+self.type_vs_generator = {
+            "number":"StdNumberRandom",
+            "boolean":"StdBooleanRandom",
+            "integer":"StdIntegerRandom",
+            "string":"StdStringRandom",
+            "date-time":"StdDateTimeRandom",
+            "email":"StdEmailRandom",
+            "ipv4":"StdIPv4Random",
+            "ipv6":"StdIPv6Random",
+            "uri":"StdURIRandom",
+            "hostname":"StdDomainNameRandom"
+        }
+```
+All default generators are imported from **generators.py**.
+
+### Specify Generators
+If you don't want to follow the default mapping above, there are two ways to specify generator usage:
 
 1. You can change the generator for a key by specifying '_generator_config' in the json schema. Only this key will be genreated by the specified generator. Other keys of the same type are not affected.
 
@@ -85,6 +94,7 @@ There are two ways to specify non-default generator to use:
 For example, we provide a class StdIntegerSequence to output a consecutive integer sequence. Both below code blocks achieve the same goal:
 
 ```python
+#Define generator in _generator_config
 from json_schema_express import DataProducer
 
 schema = {
@@ -95,7 +105,7 @@ schema = {
     "generator": "StdIntegerSequence"
   }
 }
-#"start" and "step" are parameters required by StdIntegerSequence.
+#"start" and "step" are parameters required by StdIntegerSequence (a suplementary generator we provided in generator.py).
 #We add the "_" prefix to differentiate with standard json schema keywords.
 dp = DataProducer(schema)
 for i in range(0,5):
@@ -103,6 +113,7 @@ for i in range(0,5):
 ```
 
 ```python
+#override the tye_vs_generator setting
 from json_schema_express import DataProducer
 schema = {
     "type": "integer",
@@ -111,7 +122,7 @@ schema = {
         "step": 100
         }
     }
-dp = DataProducer(schema,{"integer":"std_integer_generator.StdIntegerSequence"})
+dp = DataProducer(schema,{"integer":"StdIntegerSequence"})
 for i in range(0,5):
     print dp.produce()
 ```
@@ -124,18 +135,18 @@ Both the outputs are:
 400
 ```
 # Customize generator
-Sometimes you may want to generate more than random data for a json schema, such as the integer sequence we exhibited above. In this case, you can write your own generators.
+Sometimes you may want to generate more than simple random data for a json schema, such as the integer sequence we exhibited above. In this case, you can write your own generators.
 
-All existing generators are placed in **generators.py**. You can define your own generator class following the STD examples. The important things you need to know are:
+All existing generators are placed in **generators.py**. You can define your own generator class following these examples. You can put the new generators in generator.py or another python library. In the latter case, you need to import your python library  Below are things you need to know:
 
 1. Your generator class needs to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value. You can also require the json schema to provide additional parameters in object _generator_config, As the example in previous section.
 
-2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. Next time DataProducer meets the key, it will directly call the cached instance to get the value. This is how we generate integer sequence. 
+2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. Next time DataProducer meets the key, it will directly call the cached instance to get the value. This can help you to save and reuse intemediate status. 
 
 ## Supported and Unsupported Json Schema Keywords
 
-### Supported V4 Keywords
-json-schema-express now supports below json schema keywords: 
+### Supported
+json-schema-express supports below json schema keywords: 
 * Json Type
 
 Json-schema-express currently only support single value of "type" keyword, including string, number(float acutally), integer, boolean, object and array.
@@ -158,6 +169,7 @@ The "enum" types are not supported.
     - array
     
     items, minItems, maxItems, uniqueItems
+
 * Generic Keywords
     - enum
     
@@ -169,7 +181,7 @@ The "enum" types are not supported.
 
     - required
     
-### Unsupported V4 Keywords
+### Unsupported
 
 - MaxProperties, MinProperties, AdditionalProperties, patternProperties
 - anyof, oneof, allof
