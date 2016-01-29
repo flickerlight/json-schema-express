@@ -135,18 +135,18 @@ Both the outputs are:
 400
 ```
 # Customize generator
-Sometimes you may want to generate more than simple random data for a json schema, such as the integer sequence we exhibited above. In this case, you can write your own generators.
+Often you may want to generate more than simple random data, such as the integer sequence we exhibited above. In this case, you can write your own generators.
 
 All existing generators are placed in **generators.py**. You can define your own generator class following these examples. You can put the new generators in generator.py or another python library. In the latter case, you need to import your python library  Below are things you need to know:
 
-1. Your generator class needs to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value. You can also require the json schema to provide additional parameters in object _generator_config, As the example in previous section.
+1. Your generator class needs to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value. You can require the json schema to provide additional parameters in object _generator_config.
 
-2. Once a generator is instantialized for a json key, this generator instance will be associated with the key and cached by DataProducer. Next time DataProducer meets the key, it will directly call the cached instance to get the value. This can help you to save and reuse intemediate status. 
+2. A generator is instantialized when DataProducer meets a json key for the first time, and this generator instance will be associated with the key and cached.Next time DataProducer meets the key, it will directly call the cached instance to return the value. In this way you can save any intemediate status/parameters in your generator instance and reuse them in the future. 
 
 ## Supported and Unsupported Json Schema Keywords
 
 ### Supported
-json-schema-express supports below json schema keywords: 
+Currently json-schema-express supports below json schema keywords: 
 * Json Type
 
 Json-schema-express currently only support single value of "type" keyword, including string, number(float acutally), integer, boolean, object and array.
