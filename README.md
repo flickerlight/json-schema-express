@@ -66,7 +66,8 @@ The output might be like:
 json-schema-express main process loads a bunch of generators to generate random data for each json key. You can easily change the correspondece between genrators and json keys, as well as create and plug-in customized generators.
 
 ### Default Generators
-By default, json-schema-express uses default generators for each json type/format. The mapping is in the init function of DataProducer class in **data_producer.py**:
+By default, json-schema-express uses default generators for each json type/format. The mapping is set in the \_\_init\_\_()
+ method of DataProducer class in **data_producer.py**:
 ```python
 ...
 self.type_vs_generator = {
@@ -84,14 +85,37 @@ self.type_vs_generator = {
 ```
 All default generators are imported from **generators.py**.
 
-### Specify Generators
-If you don't want to follow the default mapping above, there are two ways to specify generator usage:
+### Customize generator
+Often you may want to generate more than simple random data, such as the integer sequence we exhibited above. In this case, you can write your own generators.
 
-1. You can change the generator for a key by specifying '_generator_config' in the json schema. Only this key will be genreated by the specified generator. Other keys of the same type are not affected.
+All existing generators are placed in **generators.py**. Customized generator class can be defined following these examples. New generators can be put in generator.py or any other python file. In the latter case, your generator class has to be imported when use DataProducer. Below are the common things you need to know:
+
+1. Your generator class needs to accept a json schema in its \_\_init\_\_() method, and provides a generate() method to return the generated value. You can require the json schema to provide additional parameters in object _generator_config.
+
+2. A generator is instantialized when DataProducer meets a json key for the first time, and this generator instance will be associated with the key and cached.Next time DataProducer meets the key, it will directly call the cached instance to return the value. In this way you can save any intemediate status/parameters in your generator instance and reuse them in the future. 
+
+Here is the example of a simple customized generator StdIntegerSequence:
+
+```python
+class StdIntegerSequence:
+    '''Define an integer sequence with specified start and step parameters, and return one element each time when generate() is called'''
+    def __init__(self,config):
+        self.start = config['_generator_config']['start']
+        self.step = config['_generator_config']['step']
+        self.current = self.start-self.step
+
+    def generate(self):
+        self.current +=self.step
+        return self.current
+```
+### Specify Generator to Use
+There are two ways to specify a generator into use:
+
+1. You can assign a generator for a specific key by setting '_generator_config' in the json schema. Only this key will be genreated by the assigned generator, other keys of the same type are not affected.
 
 2. You can pass a config dictionary to the DataProducer() constructor to overwritten the default setting. Notice that in this way, all keys of the same type will be genereted by the specified generator.
 
-For example, we provide a class StdIntegerSequence to output a consecutive integer sequence. Both below code blocks achieve the same goal:
+For example, in previous section we provide a custom class StdIntegerSequence to output a consecutive integer sequence. Both below code blocks make use of this generator:
 
 ```python
 #Define generator in _generator_config
@@ -105,8 +129,7 @@ schema = {
     "generator": "StdIntegerSequence"
   }
 }
-#"start" and "step" are parameters required by StdIntegerSequence (a suplementary generator we provided in generator.py).
-#We add the "_" prefix to differentiate with standard json schema keywords.
+#"start" and "step" are parameters required by StdIntegerSequence.
 dp = DataProducer(schema)
 for i in range(0,5):
     print dp.produce()
@@ -134,14 +157,6 @@ Both the outputs are:
 300
 400
 ```
-# Customize generator
-Often you may want to generate more than simple random data, such as the integer sequence we exhibited above. In this case, you can write your own generators.
-
-All existing generators are placed in **generators.py**. You can define your own generator class following these examples. You can put the new generators in generator.py or another python library. In the latter case, you need to import your python library  Below are things you need to know:
-
-1. Your generator class needs to accept the key's json schema in its __init__() method, and provides a generate() method to return the generated value. You can require the json schema to provide additional parameters in object _generator_config.
-
-2. A generator is instantialized when DataProducer meets a json key for the first time, and this generator instance will be associated with the key and cached.Next time DataProducer meets the key, it will directly call the cached instance to return the value. In this way you can save any intemediate status/parameters in your generator instance and reuse them in the future. 
 
 ## Supported and Unsupported Json Schema Keywords
 
