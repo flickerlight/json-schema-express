@@ -199,32 +199,32 @@ class TestSchemaParse(unittest.TestCase):
         }
         dp = DataProducer(schema,'./sample_schemas')
         self.assertEqual(dp.schema['definitions']['address'],{
-											            "type": "object", 
-											            "properties": {
-											                "code": {
-											                    "type": "integer"
-											                }, 
-											                "street_address": {
-											                    "$schema": "http://json-schema.org/draft-04/schema#", 
-											                    "required": [
-											                        "patterns", 
-											                        "plains"
-											                    ], 
-											                    "type": "object", 
-											                    "properties": {
-											                        "patterns": {
-											                            "pattern": "[A-Z]{4,10}[0-9]\\.[a-z]{2}", 
-											                            "type": "string"
-											                        }, 
-											                        "plains": {
-											                            "minLength": 5, 
-											                            "type": "string", 
-											                            "maxLength": 10
-											                        }
-											                    }
-											                }
-											            }
-											        })
+                                                        "type": "object", 
+                                                        "properties": {
+                                                            "code": {
+                                                                "type": "integer"
+                                                            }, 
+                                                            "street_address": {
+                                                                "$schema": "http://json-schema.org/draft-04/schema#", 
+                                                                "required": [
+                                                                    "patterns", 
+                                                                    "plains"
+                                                                ], 
+                                                                "type": "object", 
+                                                                "properties": {
+                                                                    "patterns": {
+                                                                        "pattern": "[A-Z]{4,10}[0-9]\\.[a-z]{2}", 
+                                                                        "type": "string"
+                                                                    }, 
+                                                                    "plains": {
+                                                                        "minLength": 5, 
+                                                                        "type": "string", 
+                                                                        "maxLength": 10
+                                                                    }
+                                                              }
+                                                            }
+                                                        }
+                                                    })
         value = dp.produce()
         self.assertEqual(len(value),2)
         self.assertEqual(len(value['billing_address']),2)
