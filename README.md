@@ -183,7 +183,7 @@ Currently only support one level $ref, nested $ref (i.e., there are further $ref
 
 * number and string
 
-Support of these keywords are implemented in corresponding standard generator classes.If you write your own generator, you need to deal with these keywords by your own.
+Support of these keywords are implemented in corresponding default generator classes.If you write your own generator, you need to deal with these keywords by your own.
 
 - number/integer
     
