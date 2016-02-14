@@ -162,39 +162,46 @@ Both the outputs are:
 
 ### Supported
 Currently json-schema-express supports below json schema keywords: 
-* Json Type
 
-Json-schema-express currently only support single value of "type" keyword, including string, number(float acutally), integer, boolean, object and array.
-The "enum" types are not supported.
+#### Type
 
-* Type-Speicific Keywords
+Json-schema-express currently only support single value of "type" keyword, including string, number(implemented as float), integer, boolean, object and array.
+The "enum" types (such as [string, integer]) are not supported.
+
+#### Generic Keywords
+
+- enum
     
-    - number/integer
-    
-    maximum, minimum, exclusiveMaximum, exlculisveMinimum, mulitpleof
+It should be used together with type string/integer/number, standalone usage is not supported.
 
-    - string
+- $ref
     
-    minLength, maxLength, pattern, format(ipv4/ipv6/email/uri/hostname/date-time)
+Currently only support one level $ref, nested $ref (i.e., there are further $ref(s) in the referred json) is not supported.
 
-    - object
+
+#### Type-Speicific Keywords
+
+* number and string
+
+Support of these keywords are implemented in corresponding standard generator classes.If you write your own generator, you need to deal with these keywords by your own.
+
+- number/integer
     
-    properties
+maximum, minimum, exclusiveMaximum, exlculisveMinimum, mulitpleof
 
-    - array
+- string
     
-    items, minItems, maxItems, uniqueItems
+minLength, maxLength, pattern, format(ipv4/ipv6/email/uri/hostname/date-time)
 
-* Generic Keywords
-    - enum
+* object and array
+
+- object
     
-    It should be used together with type string/integer/number, standalone usage is not supported.
+properties, required (Keys that are not required will randomly appear in the generated json.)
 
-    - $ref
+- array
     
-    Currently only support one level $ref, nested $ref (i.e., there are further $ref(s) in the referred json) is not supported.
-
-    - required
+items, minItems, maxItems, uniqueItems
     
 ### Unsupported
 
